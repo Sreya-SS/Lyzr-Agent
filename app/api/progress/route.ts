@@ -5,7 +5,7 @@
 // browser session without any auth (single-user scope per CLAUDE.md).
 import { NextResponse, type NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
-import { progressStore } from "@/lib/persistence/jsonStore";
+import { progressStore } from "@/lib/persistence";
 import { ProgressRecordSchema } from "@/lib/persistence/types";
 
 const COOKIE = "hidevs_sid";

@@ -7,11 +7,13 @@ import {
   type Mission,
   type MissionsLevel,
 } from "./schema";
+import { lyzrAgentCampaign } from "./campaigns/lyzr-agent";
 import { retrieverAgentCampaign } from "./campaigns/retriever-agent";
 import { mcpToolAgentCampaign } from "./campaigns/mcp-tool-agent";
 
 // Parse (not just cast) so defaults are applied and referential integrity holds.
 export const campaigns: Campaign[] = CampaignCatalogSchema.parse([
+  lyzrAgentCampaign,
   retrieverAgentCampaign,
   mcpToolAgentCampaign,
 ]);

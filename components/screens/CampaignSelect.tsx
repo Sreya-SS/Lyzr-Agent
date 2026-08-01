@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 
 // Simple per-campaign icon lookup (falls back to a generic one).
 const ICONS: Record<string, string> = {
+  "lyzr-agent": "🤖",
   "retriever-agent": "🔍",
   "mcp-tool-agent": "🔌",
 };

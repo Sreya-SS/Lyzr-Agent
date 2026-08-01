@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HiDevs — Agent Engineering Campaign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0b10; --panel:#14141c; --panel-2:#191921; --border:#242432;
+    --text:#e8e8ef; --text-dim:#9494a6; --text-mute:#5c5c6e;
+    --purple:#8b5cf6; --purple-light:#a78bfa; --purple-dim:rgba(139,92,246,.14);
+    --g-blue:#4285F4; --g-green:#34A853; --g-yellow:#FBBC05; --g-red:#EA4335;
+    --code-bg:#0d0d14; --mono:'JetBrains Mono',monospace; --disp:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;padding:24px 24px 90px;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;flex-wrap:wrap;gap:14px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--purple),#5b3fd6);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:15px;color:#fff;}
+  .brand-name{font-family:var(--disp);font-weight:600;font-size:15px;}
+  .brand-sub{font-size:11px;color:var(--text-mute);margin-top:1px;}
+  .stat-cluster{display:flex;align-items:center;gap:18px;}
+  .stat{display:flex;flex-direction:column;align-items:flex-end;}
+  .stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);}
+  .stat-value{font-family:var(--mono);font-size:15px;font-weight:600;}
+  .stat-value.xp{color:var(--purple-light);} .stat-value.timer{color:var(--g-green);}
+
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;}
+  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);margin-bottom:14px;font-weight:600;}
+  .screen{display:none;} .screen.show{display:block;animation:fadein .35s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);}}
+
+  .crumb{font-family:var(--mono);font-size:11px;color:var(--text-mute);margin-bottom:16px;}
+  .crumb b{color:var(--purple-light);}
+
+  /* ---- campaign select ---- */
+  .campaign-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px;}
+  @media(max-width:760px){.campaign-grid{grid-template-columns:1fr;}}
+  .ccard{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .25s;}
+  .ccard:hover{border-color:var(--purple);transform:translateY(-2px);}
+  .ccard.disabled{opacity:.4;cursor:not-allowed;}
+  .ccard.disabled:hover{transform:none;border-color:var(--border);}
+  .ccard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .ccard h3{font-family:var(--disp);font-size:15.5px;font-weight:600;}
+  .ccard-badge{font-size:9.5px;background:var(--purple-dim);color:var(--purple-light);padding:3px 8px;border-radius:20px;font-family:var(--mono);}
+  .ccard p{font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;}
+  .ccard-meta{display:flex;gap:14px;font-size:11px;color:var(--text-mute);font-family:var(--mono);}
+
+  /* ---- project setup ---- */
+  .toggle-row{display:flex;gap:10px;margin-bottom:18px;}
+  .toggle-opt{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;text-align:center;transition:all .2s;}
+  .toggle-opt.on{border-color:var(--purple);background:var(--purple-dim);}
+  .toggle-opt b{display:block;font-family:var(--disp);font-size:13.5px;margin-bottom:3px;}
+  .toggle-opt span{font-size:11px;color:var(--text-dim);}
+  .term{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 18px;font-family:var(--mono);font-size:12.5px;color:#9de89d;line-height:2;margin-bottom:14px;}
+  .term .p{color:var(--text-mute);}
+  .note{font-size:11.5px;color:var(--text-mute);font-style:italic;margin-bottom:18px;}
+
+  /* ---- level intro ---- */
+  .level-hero{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .level-num{width:46px;height:46px;border-radius:12px;background:var(--purple-dim);color:var(--purple-light);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:18px;flex-shrink:0;}
+  .mission-list{margin-top:4px;}
+  .mission-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13px;}
+  .mission-row:last-child{border-bottom:none;}
+  .mission-idx{width:22px;height:22px;border-radius:50%;background:var(--panel-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;color:var(--text-mute);flex-shrink:0;}
+  .mission-row .mr-name{flex:1;}
+  .mission-row .mr-xp{font-family:var(--mono);font-size:11px;color:var(--purple-light);}
+
+  /* ---- ministeps ---- */
+  .step-flow{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+  .step-item{display:flex;gap:14px;padding:14px 4px;position:relative;}
+  .step-item:not(:last-child)::before{content:'';position:absolute;left:15px;top:38px;bottom:-4px;width:2px;background:var(--border);}
+  .step-num{width:30px;height:30px;border-radius:50%;background:var(--panel-2);border:1.5px solid var(--border);color:var(--text-dim);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;flex-shrink:0;z-index:1;}
+  .step-body b{display:block;font-size:13px;margin-bottom:2px;}
+  .step-body span{font-size:11.5px;color:var(--text-mute);}
+
+  /* ---- editor screen (reused) ---- */
+  .main{display:grid;grid-template-columns:220px 1fr 250px;gap:18px;align-items:start;}
+  @media(max-width:980px){.main{grid-template-columns:1fr;}}
+  .file{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;font-family:var(--mono);font-size:12.5px;margin-bottom:3px;}
+  .file.active{background:var(--purple-dim);color:var(--purple-light);}
+  .file.locked{color:var(--text-mute);}
+  .file.unlocked-plain{color:var(--text-dim);}
+  .file-icon{font-size:12px;width:14px;text-align:center;}
+  .file-tag{margin-left:auto;font-size:8.5px;padding:2px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+  .file-tag.given{background:rgba(66,133,244,.15);color:var(--g-blue);}
+  .file-tag.yours{background:var(--purple-dim);color:var(--purple-light);}
+  .file.just-unlocked{animation:unlockPulse 1s ease;}
+  @keyframes unlockPulse{0%{background:transparent;}30%{background:rgba(52,168,83,.25);}100%{background:transparent;}}
+
+  .mini-tracker{display:flex;gap:6px;margin-bottom:16px;}
+  .mt-pill{flex:1;padding:8px 10px;border-radius:8px;background:var(--panel-2);border:1px solid var(--border);font-size:10.5px;color:var(--text-mute);text-align:center;font-family:var(--mono);transition:all .3s;}
+  .mt-pill.active{border-color:var(--purple);color:var(--purple-light);background:var(--purple-dim);}
+  .mt-pill.done{border-color:var(--g-green);color:var(--g-green);}
+
+  .brief-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .chip{font-size:11px;padding:5px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);}
+  .chip.reward{color:var(--purple-light);border-color:rgba(139,92,246,.3);}
+  .chip.diff{color:var(--g-yellow);border-color:rgba(251,188,5,.25);}
+  h1.mtitle{font-family:var(--disp);font-size:22px;font-weight:600;margin-bottom:6px;}
+  .mdesc{font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:16px;max-width:64ch;}
+  .editor{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+  .editor-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--border);}
+  .dot{width:9px;height:9px;border-radius:50%;} .dot.r{background:#ff5f57;} .dot.y{background:#febc2e;} .dot.g{background:#28c840;}
+  .editor-fname{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);margin-left:6px;}
+  .code{font-family:var(--mono);font-size:13px;line-height:1.9;padding:18px 4px;overflow-x:auto;}
+  .code-line{display:flex;}
+  .lineno{width:34px;flex-shrink:0;text-align:right;padding-right:14px;color:var(--text-mute);user-select:none;}
+  .code-content{white-space:pre;color:#c9c9d6;}
+  .kw{color:#c586c0;} .fn{color:#dcdcaa;} .cmt{color:#6a9955;}
+  .newline{background:rgba(52,168,83,.08);} .newline .lineno{color:var(--g-green);}
+  .todo-slot{display:inline-flex;align-items:center;background:var(--purple-dim);border:1px dashed rgba(139,92,246,.5);border-radius:6px;padding:2px 8px;margin:2px 0;}
+  select.todo-input, input.todo-input{background:transparent;border:none;color:var(--purple-light);font-family:var(--mono);font-size:13px;outline:none;cursor:pointer;}
+  select.todo-input option{background:var(--panel);color:var(--text);}
+  input.todo-input{width:auto;min-width:60px;} input.todo-input::placeholder{color:rgba(167,139,250,.5);}
+  .todo-filled{border-style:solid;background:rgba(52,168,83,.1);border-color:rgba(52,168,83,.4);}
+  .todo-filled select,.todo-filled input{color:var(--g-green);}
+  .check-item{display:flex;align-items:center;gap:10px;padding:8px 4px;font-size:13px;color:var(--text-dim);border-bottom:1px solid var(--border);}
+  .check-item:last-child{border-bottom:none;}
+  .box{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--text-mute);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .25s;}
+  .box.checked{background:var(--g-green);border-color:var(--g-green);color:#06140c;}
+  .assist-tab{font-size:11.5px;padding:8px 10px;border-radius:8px;color:var(--text-dim);cursor:pointer;margin-bottom:2px;border:1px solid transparent;}
+  .assist-tab.on{background:var(--purple-dim);color:var(--purple-light);border-color:rgba(139,92,246,.25);}
+  .assist-body{font-size:12px;line-height:1.6;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+  .tradeoff{display:flex;gap:8px;margin-top:10px;}
+  .tcol{flex:1;background:var(--panel-2);border-radius:8px;padding:10px;font-size:11.5px;}
+  .tcol b{display:block;color:var(--text);margin-bottom:5px;font-family:var(--mono);font-size:11px;}
+  .continue-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+  .progress-note{font-size:11.5px;color:var(--text-mute);font-family:var(--mono);}
+  button.cta{font-family:var(--body);font-weight:600;font-size:13.5px;background:var(--text-mute);color:#0b0b10;border:none;padding:11px 22px;border-radius:9px;cursor:not-allowed;transition:all .25s;}
+  button.cta.ready{background:var(--purple);color:#fff;cursor:pointer;}
+  button.cta.ready:hover{background:var(--purple-light);}
+  button.cta-outline{font-family:var(--body);font-weight:600;font-size:13px;background:transparent;color:var(--purple-light);border:1.5px solid var(--purple);padding:10px 20px;border-radius:9px;cursor:pointer;transition:all .2s;}
+  button.cta-outline:hover{background:var(--purple-dim);}
+
+  /* ---- level complete / summary ---- */
+  .center-panel{text-align:center;padding:44px 20px;}
+  .center-panel h2{font-family:var(--disp);font-size:26px;margin-bottom:10px;}
+  .center-panel p{color:var(--text-dim);font-size:13.5px;margin-bottom:20px;}
+  .big-stat{font-family:var(--mono);font-size:40px;color:var(--g-green);font-weight:600;}
+  .badge-row{display:flex;justify-content:center;gap:14px;margin:22px 0;}
+  .badge{width:56px;height:56px;border-radius:14px;background:var(--purple-dim);border:1px solid rgba(139,92,246,.35);display:flex;align-items:center;justify-content:center;font-size:22px;}
+
+  /* ---- toast ---- */
+  #toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-140%);background:var(--panel);border:1px solid var(--g-green);border-radius:10px;padding:12px 20px;font-family:var(--mono);font-size:13px;color:var(--g-green);transition:transform .4s cubic-bezier(.34,1.56,.64,1);z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ---- mentor agent ---- */
+  #mentorBtn{
+    position:fixed;bottom:26px;right:26px;z-index:60;
+    display:flex;align-items:center;gap:9px;
+    background:linear-gradient(135deg,var(--purple),#5b3fd6);color:#fff;
+    border:none;padding:13px 18px;border-radius:30px;font-family:var(--body);font-weight:600;font-size:13px;
+    cursor:pointer;box-shadow:0 8px 24px rgba(139,92,246,.35);transition:transform .2s;
+  }
+  #mentorBtn:hover{transform:translateY(-2px);}
+  #mentorBtn .mdot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25);}
+  #mentorPanel{
+    position:fixed;bottom:0;right:0;top:0;width:340px;max-width:92vw;
+    background:var(--panel);border-left:1px solid var(--border);z-index:70;
+    transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+  }
+  #mentorPanel.open{transform:translateX(0);}
+  .mentor-head{padding:18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .mentor-head-l{display:flex;align-items:center;gap:10px;}
+  .mentor-avatar{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--purple),#5b3fd6);display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .mentor-head b{display:block;font-size:13px;} .mentor-head span{font-size:10.5px;color:var(--g-green);font-family:var(--mono);}
+  .mentor-close{background:none;border:none;color:var(--text-mute);font-size:18px;cursor:pointer;}
+  .mentor-body{flex:1;padding:18px;overflow-y:auto;font-size:12.5px;color:var(--text-dim);line-height:1.6;}
+  .mentor-msg{background:var(--panel-2);border-radius:10px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--border);}
+  .mentor-msg b{color:var(--text);display:block;margin-bottom:4px;font-size:11.5px;}
+  .mentor-context{font-size:10.5px;color:var(--purple-light);font-family:var(--mono);margin-bottom:14px;padding:8px 10px;background:var(--purple-dim);border-radius:8px;}
+  .mentor-input-row{padding:14px;border-top:1px solid var(--border);display:flex;gap:8px;}
+  .mentor-input{flex:1;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:12.5px;font-family:var(--body);}
+  .mentor-send{background:var(--purple);border:none;color:#fff;border-radius:8px;padding:0 14px;cursor:pointer;font-size:13px;}
+  .mentor-stub{font-size:10.5px;color:var(--text-mute);font-style:italic;padding:0 18px 14px;}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- MENTOR AGENT (persistent, all screens) -->
+<button id="mentorBtn" onclick="toggleMentor()"><span class="mdot"></span> Ask Mentor</button>
+<div id="mentorPanel">
+  <div class="mentor-head">
+    <div class="mentor-head-l">
+      <div class="mentor-avatar">🧭</div>
+      <div><b>Mentor Agent</b><span>● context-aware</span></div>
+    </div>
+    <button class="mentor-close" onclick="toggleMentor()">✕</button>
+  </div>
+  <div class="mentor-body">
+    <div class="mentor-context" id="mentorContext">Currently: Choose Campaign</div>
+    <div class="mentor-msg"><b>Mentor</b><span id="mentorMsg">Pick a campaign to start — I'll walk with you through every mission after this.</span></div>
+  </div>
+  <div class="mentor-stub">Integration point — will call the real mentor agent per screen context</div>
+  <div class="mentor-input-row">
+    <input class="mentor-input" placeholder="Ask about this step…" disabled>
+    <button class="mentor-send" disabled>→</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">H</div>
+      <div><div class="brand-name">HiDevs</div><div class="brand-sub" id="topSub">Season 1 — AI Agent Odyssey</div></div>
+    </div>
+    <div class="stat-cluster">
+      <div class="stat"><span class="stat-label">Elapsed</span><span class="stat-value timer" id="timerVal">00:00</span></div>
+      <div class="stat"><span class="stat-label">XP</span><span class="stat-value xp" id="xpVal">0</span></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 1 : CHOOSE CAMPAIGN -->
+  <div class="screen show" id="screen-campaign">
+    <div class="panel">
+      <div class="panel-title">Choose campaign</div>
+      <div class="campaign-grid">
+        <div class="ccard" onclick="goTo('setup')">
+          <div class="ccard-top"><h3>Retriever Agent</h3><span class="ccard-badge">LangChain · Qdrant</span></div>
+          <p>Build a simple agent that answers from your own documents using vector retrieval.</p>
+          <div class="ccard-meta"><span>2 levels</span><span>~40 min</span><span>75 XP</span></div>
+        </div>
+        <div class="ccard disabled">
+          <div class="ccard-top"><h3>MCP Tool Agent</h3><span class="ccard-badge">Google ADK</span></div>
+          <p>Wire an agent to external tools over MCP.</p>
+          <div class="ccard-meta"><span>Locked</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 : PROJECT SETUP (Level 0) -->
+  <div class="screen" id="screen-setup">
+    <div class="panel">
+      <div class="crumb"><b>Level 0</b> · Project Setup</div>
+      <h1 class="mtitle">Get your project on disk</h1>
+      <p class="mdesc">Everything from here runs locally on your machine — HiDevs never hosts or executes your agent.</p>
+      <div class="toggle-row">
+        <div class="toggle-opt on" id="opt-clone" onclick="pickSetup('clone')"><b>Clone Template</b><span>Pre-wired boilerplate + folders</span></div>
+        <div class="toggle-opt" id="opt-scratch" onclick="pickSetup('scratch')"><b>Start from Scratch</b><span>Empty repo, you build structure</span></div>
+      </div>
+      <div class="term" id="termBlock">
+        <div><span class="p">$</span> git clone https://github.com/hidevs/retriever-agent-template</div>
+        <div><span class="p">$</span> cd retriever-agent-template</div>
+        <div><span class="p">$</span> python -m venv .venv && source .venv/bin/activate</div>
+        <div><span class="p">$</span> pip install -r requirements.txt</div>
+      </div>
+      <p class="note">We can't verify your local machine — once you've run these, just click Next.</p>
+      <div class="continue-row">
+        <span class="progress-note">Level 0 · no XP, no verification</span>
+        <button class="cta ready" onclick="goTo('levelintro')">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 : LEVEL INTRO -->
+  <div class="screen" id="screen-levelintro">
+    <div class="panel">
+      <div class="crumb"><b>Level 1</b> · Root Agent</div>
+      <div class="level-hero">
+        <div class="level-num">01</div>
+        <div>
+          <h1 class="mtitle" style="margin-bottom:2px;">Root Agent</h1>
+          <p class="mdesc" style="margin-bottom:0;">Bring agent.py to life and wire it to retrieval.</p>
+        </div>
+      </div>
+      <div class="mission-list" id="levelMissionList"></div>
+      <div class="continue-row">
+        <span class="progress-note" id="levelXpNote">75 XP available</span>
+        <button class="cta ready" onclick="goTo('ministeps')">Start level →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4 : MISSION MINI-STEPS OVERVIEW -->
+  <div class="screen" id="screen-ministeps">
+    <div class="panel">
+      <div class="crumb" id="msCrumb"></div>
+      <h1 class="mtitle" id="msTitle"></h1>
+      <p class="mdesc" id="msDesc"></p>
+      <div class="step-flow" id="stepFlow"></div>
+      <div class="continue-row">
+        <span class="progress-note" id="msXpNote"></span>
+        <button class="cta ready" onclick="goTo('editor')">Begin mission →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5 : EDITOR -->
+  <div class="screen" id="screen-editor">
+    <div class="main">
+      <div class="panel"><div class="panel-title">Project files</div><div id="fileTree"></div></div>
+      <div>
+        <div class="panel">
+          <div class="crumb" id="edCrumb"></div>
+          <div class="mini-tracker" id="miniTracker"></div>
+          <div class="brief-row">
+            <span class="chip reward">+<span id="rewardXp">0</span> XP</span>
+            <span class="chip diff">Difficulty: <span id="diffVal"></span></span>
+            <span class="chip">~<span id="estTime">0</span> min</span>
+          </div>
+          <h1 class="mtitle" id="mTitle"></h1>
+          <p class="mdesc" id="mDesc"></p>
+          <div class="editor">
+            <div class="editor-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><span class="editor-fname" id="fname"></span></div>
+            <div class="code" id="codeArea"></div>
+          </div>
+          <div class="panel" style="background:var(--panel-2);margin-bottom:16px;">
+            <div class="panel-title">Mission checklist</div>
+            <div id="checklist"></div>
+          </div>
+          <div class="continue-row">
+            <span class="progress-note" id="progNote"></span>
+            <button class="cta" id="continueBtn" disabled>Continue →</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Mission assistant</div>
+        <div class="assist-tab on">Trade-offs</div>
+        <div class="assist-tab">Common mistakes</div>
+        <div class="assist-tab">Docs</div>
+        <div class="assist-body" id="assistBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 6 : LEVEL COMPLETE -->
+  <div class="screen" id="screen-levelcomplete">
+    <div class="panel center-panel">
+      <h2>Level 1 complete</h2>
+      <p>agent.py is fully wired — model, instructions, and retrieval all yours.</p>
+      <div class="badge-row"><div class="badge">🏆</div><div class="badge">⚡</div><div class="badge">🔓</div></div>
+      <button class="cta ready" onclick="goTo('summary')">Finish campaign →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 7 : CAMPAIGN SUMMARY -->
+  <div class="screen" id="screen-summary">
+    <div class="panel center-panel">
+      <h2>Simple agent — built.</h2>
+      <p>LangChain agent wired to Qdrant retrieval, running locally.</p>
+      <div class="big-stat" id="finalTime">00:00</div>
+      <p style="margin-top:6px;">total build time · <span id="finalXp">0</span> XP earned</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ================= STATE ================= */
+let xp = 0, seconds = 0, timerRunning = false;
+
+const missions = [
+  {
+    key:"m1", file:"agent.py",
+    title:"Mission 1 — Bring the agent to life",
+    desc:"The Qdrant boilerplate is already wired up in qdrant_setup.py — you don't touch that. Your job: pick the model and write the instruction it runs on.",
+    reward:40, diff:"Easy", est:12,
+    miniSteps:[
+      {label:"Choose your model", sub:"Flash vs Pro — a real trade-off, not a formality"},
+      {label:"Write the instruction", sub:"What the agent is told to do on every call"},
+      {label:"Set the temperature", sub:"Controls how deterministic answers are"}
+    ],
+    checklist:["Model selected","Instruction written","Temperature set"],
+    assist:`<div class="tradeoff">
+        <div class="tcol"><b>gemini-2.5-flash</b><div>Faster</div><div>Cheaper</div><div>Good for tool-routing</div></div>
+        <div class="tcol"><b>gemini-2.5-pro</b><div>Stronger reasoning</div><div>Slower</div><div>Better for ambiguous queries</div></div>
+      </div>`,
+    codeLines:[
+      {t:"cmt", c:"# imports + Qdrant client are pre-wired in qdrant_setup.py"},
+      {t:"code", c:'<span class="kw">from</span> qdrant_setup <span class="kw">import</span> retriever'},
+      {t:"code", c:'<span class="kw">from</span> langchain.agents <span class="kw">import</span> <span class="fn">create_agent</span>'},
+      {t:"blank"},
+      {t:"code", c:'root_agent = <span class="fn">create_agent</span>('},
+      {t:"code-indent", c:'model=<span class="todo-slot"><select class="todo-input" data-slot="model" data-check="0"><option value="">choose model…</option><option value="gemini-2.5-flash">"gemini-2.5-flash"</option><option value="gemini-2.5-pro">"gemini-2.5-pro"</option></select></span>,'},
+      {t:"code-indent", c:'instructions=<span class="todo-slot"><input class="todo-input" data-slot="instr" data-check="1" placeholder="write agent instruction…" size="30"></span>,'},
+      {t:"code-indent", c:'temperature=<span class="todo-slot"><input class="todo-input" data-slot="temp" data-check="2" placeholder="0.0–1.0" size="6"></span>,'},
+      {t:"code-indent", c:'retriever=retriever  <span class="cmt"># ← from boilerplate, already connected</span>'},
+      {t:"code", c:')'},
+    ]
+  },
+  {
+    key:"m2", file:"agent.py",
+    title:"Mission 2 — Wire the retriever behavior",
+    desc:"Your agent already talks to Qdrant through the boilerplate client. Now decide how it searches: which collection, and how many chunks it pulls back per query.",
+    reward:35, diff:"Easy", est:10,
+    miniSteps:[
+      {label:"Name the collection", sub:"Which Qdrant collection this agent searches"},
+      {label:"Configure top_k", sub:"How many chunks come back per query"}
+    ],
+    checklist:["Collection name set","top_k configured"],
+    assist:`<div class="assist-body" style="border:none;padding:0;margin:0;"><b style="color:var(--text)">Common mistake:</b> setting top_k too high (10+) floods context and hurts answer quality. Most single-topic knowledge bases work well at 3–5.</div>`,
+    codeLines:[
+      {t:"cmt", c:"# — grown from Mission 1 —"},
+      {t:"code", c:'<span class="kw">from</span> qdrant_setup <span class="kw">import</span> retriever'},
+      {t:"code", c:'<span class="kw">from</span> langchain.agents <span class="kw">import</span> <span class="fn">create_agent</span>'},
+      {t:"blank"},
+      {t:"code", c:'root_agent = <span class="fn">create_agent</span>('},
+      {t:"code-indent", c:'model=<span class="todo-slot todo-filled" style="opacity:.6"><span style="color:var(--g-green)">"gemini-2.5-flash"</span></span>,'},
+      {t:"code-indent", c:'instructions=<span class="todo-slot todo-filled" style="opacity:.6"><span style="color:var(--g-green)">"…"</span></span>,'},
+      {t:"code-indent", c:'temperature=<span class="todo-slot todo-filled" style="opacity:.6"><span style="color:var(--g-green)">0.3</span></span>,'},
+      {t:"code-indent", c:'retriever=retriever,'},
+      {t:"newline-indent", c:'search_kwargs={'},
+      {t:"newline-indent", c:'&nbsp;&nbsp;"collection": <span class="todo-slot"><input class="todo-input" data-slot="coll" data-check="0" placeholder="collection name" size="16"></span>,'},
+      {t:"newline-indent", c:'&nbsp;&nbsp;"top_k": <span class="todo-slot"><input class="todo-input" data-slot="topk" data-check="1" placeholder="3–5" size="6"></span>'},
+      {t:"newline-indent", c:'}'},
+      {t:"code", c:')'},
+    ]
+  }
+];
+
+const files = [
+  {name:"requirements.txt", state:"given", tag:"given"},
+  {name:"qdrant_setup.py", state:"given", tag:"given"},
+  {name:"agent.py", state:"active", tag:"yours"},
+];
+
+let curMission = 0, checkedState = [];
+
+/* mentor context per screen */
+const mentorMap = {
+  campaign:{ctx:"Choose Campaign", msg:"Pick a campaign to start — I'll walk with you through every mission after this."},
+  setup:{ctx:"Level 0 · Project Setup", msg:"Cloning the template gets you boilerplate for free. Starting from scratch means you own folder structure too — good if you want the extra rep."},
+  levelintro:{ctx:"Level 1 · Root Agent", msg:"Two missions here. First you shape the agent itself, then you wire it to retrieval. Nothing runs until both are done."},
+  ministeps:{ctx:"Mission mini-steps", msg:"This is the shape of what's coming — no code yet. Skim it so nothing in the editor surprises you."},
+  editor:{ctx:"In mission — editing", msg:"Stuck on a TODO? Ask me and I'll explain the trade-off without just handing you the answer."},
+  levelcomplete:{ctx:"Level 1 complete", msg:"Nice — agent.py is fully yours now. Ready for the next level whenever you are."},
+  summary:{ctx:"Campaign complete", msg:"That's a full simple agent, end to end. Want a harder variant next time?"}
+};
+
+/* ================= SCREEN ROUTER ================= */
+function goTo(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));
+  document.getElementById('screen-'+name).classList.add('show');
+  if(!timerRunning){ timerRunning = true; startTimer(); }
+
+  if(name==='levelintro') renderLevelIntro();
+  if(name==='ministeps') renderMiniSteps();
+  if(name==='editor') renderEditor();
+  if(name==='summary'){
+    document.getElementById('finalTime').textContent = document.getElementById('timerVal').textContent;
+    document.getElementById('finalXp').textContent = xp;
+  }
+  const m = mentorMap[name];
+  if(m){
+    document.getElementById('mentorContext').textContent = 'Currently: ' + m.ctx;
+    document.getElementById('mentorMsg').textContent = m.msg;
+  }
+}
+
+function pickSetup(which){
+  document.getElementById('opt-clone').classList.toggle('on', which==='clone');
+  document.getElementById('opt-scratch').classList.toggle('on', which==='scratch');
+  document.getElementById('termBlock').innerHTML = which==='clone' ? `
+    <div><span class="p">$</span> git clone https://github.com/hidevs/retriever-agent-template</div>
+    <div><span class="p">$</span> cd retriever-agent-template</div>
+    <div><span class="p">$</span> python -m venv .venv && source .venv/bin/activate</div>
+    <div><span class="p">$</span> pip install -r requirements.txt</div>` : `
+    <div><span class="p">$</span> mkdir retriever-agent && cd retriever-agent</div>
+    <div><span class="p">$</span> python -m venv .venv && source .venv/bin/activate</div>
+    <div><span class="p">$</span> pip install langchain qdrant-client</div>
+    <div><span class="p">$</span> touch agent.py qdrant_setup.py</div>`;
+}
+
+/* ================= LEVEL INTRO ================= */
+function renderLevelIntro(){
+  const el = document.getElementById('levelMissionList');
+  el.innerHTML = '';
+  let totalXp = 0;
+  missions.forEach((m,i)=>{
+    totalXp += m.reward;
+    const row = document.createElement('div');
+    row.className='mission-row';
+    row.innerHTML = `<span class="mission-idx">${i+1}</span><span class="mr-name">${m.title.replace(/^Mission \d+ — /,'')}</span><span class="mr-xp">+${m.reward} XP</span>`;
+    el.appendChild(row);
+  });
+  document.getElementById('levelXpNote').textContent = totalXp + ' XP available';
+}
+
+/* ================= MINI-STEPS ================= */
+function renderMiniSteps(){
+  const m = missions[curMission];
+  document.getElementById('msCrumb').innerHTML = `<b>Level 1</b> · Mission ${curMission+1} of ${missions.length}`;
+  document.getElementById('msTitle').textContent = m.title;
+  document.getElementById('msDesc').textContent = m.desc;
+  document.getElementById('msXpNote').textContent = `+${m.reward} XP on completion`;
+  const flow = document.getElementById('stepFlow');
+  flow.innerHTML = '';
+  m.miniSteps.forEach((s,i)=>{
+    const item = document.createElement('div');
+    item.className='step-item';
+    item.innerHTML = `<div class="step-num">${i+1}</div><div class="step-body"><b>${s.label}</b><span>${s.sub}</span></div>`;
+    flow.appendChild(item);
+  });
+}
+
+/* ================= EDITOR ================= */
+function renderFiles(justUnlockedName){
+  const el = document.getElementById('fileTree');
+  el.innerHTML = '';
+  files.forEach(f=>{
+    const row = document.createElement('div');
+    let icon = f.state==='locked' ? '🔒' : (f.state==='active' ? '●' : '✓');
+    row.className = 'file ' + (f.state==='active'?'active':(f.state==='locked'?'locked':'unlocked-plain'));
+    if(f.name===justUnlockedName) row.classList.add('just-unlocked');
+    row.innerHTML = `<span class="file-icon">${icon}</span>${f.name}<span class="file-tag ${f.tag}">${f.tag}</span>`;
+    el.appendChild(row);
+  });
+}
+
+function renderEditor(){
+  const m = missions[curMission];
+  document.getElementById('edCrumb').innerHTML = `<b>Level 1</b> · Mission ${curMission+1} of ${missions.length} · Editor`;
+  document.getElementById('rewardXp').textContent = m.reward;
+  document.getElementById('diffVal').textContent = m.diff;
+  document.getElementById('estTime').textContent = m.est;
+  document.getElementById('fname').textContent = m.file;
+  document.getElementById('mTitle').textContent = m.title;
+  document.getElementById('mDesc').textContent = m.desc;
+  document.getElementById('assistBody').innerHTML = m.assist;
+  renderFiles();
+
+  const tracker = document.getElementById('miniTracker');
+  tracker.innerHTML = '';
+  m.miniSteps.forEach((s,i)=>{
+    const p = document.createElement('div');
+    p.className='mt-pill'; p.id='mt-'+i;
+    p.textContent = (i+1)+'. '+s.label;
+    tracker.appendChild(p);
+  });
+
+  const code = document.getElementById('codeArea');
+  code.innerHTML = '';
+  let n=1;
+  m.codeLines.forEach(line=>{
+    const row = document.createElement('div');
+    row.className = 'code-line' + (line.t.startsWith('newline') ? ' newline':'');
+    let content = line.t==='blank' ? '' : line.c;
+    let indentPad = (line.t.includes('indent')) ? 'padding-left:22px;' : '';
+    row.innerHTML = `<span class="lineno">${line.t==='blank'?'':n}</span><span class="code-content" style="${indentPad}">${content}</span>`;
+    code.appendChild(row);
+    if(line.t!=='blank') n++;
+  });
+
+  checkedState = m.checklist.map(()=>false);
+  renderChecklist();
+  attachSlotListeners();
+  updateContinueState();
+  updateTracker();
+}
+
+function renderChecklist(){
+  const m = missions[curMission];
+  const el = document.getElementById('checklist');
+  el.innerHTML = '';
+  m.checklist.forEach((label,i)=>{
+    const row = document.createElement('div');
+    row.className = 'check-item' + (checkedState[i] ? ' checked':'');
+    row.innerHTML = `<span class="box ${checkedState[i]?'checked':''}">${checkedState[i]?'✓':''}</span>${label}`;
+    el.appendChild(row);
+  });
+  document.getElementById('progNote').textContent = `${checkedState.filter(Boolean).length} / ${checkedState.length} complete`;
+}
+
+function attachSlotListeners(){
+  document.querySelectorAll('.todo-input').forEach(inp=>{
+    inp.addEventListener('input', onSlotChange);
+    inp.addEventListener('change', onSlotChange);
+  });
+}
+function onSlotChange(e){
+  const idx = parseInt(e.target.dataset.check);
+  const filled = e.target.value.trim().length > 0;
+  checkedState[idx] = filled;
+  e.target.closest('.todo-slot').classList.toggle('todo-filled', filled);
+  renderChecklist();
+  updateContinueState();
+  updateTracker();
+}
+function updateTracker(){
+  checkedState.forEach((v,i)=>{
+    const p = document.getElementById('mt-'+i);
+    if(!p) return;
+    p.classList.toggle('done', v);
+    p.classList.toggle('active', !v && checkedState.slice(0,i).every(Boolean));
+  });
+}
+function updateContinueState(){
+  const btn = document.getElementById('continueBtn');
+  const ready = checkedState.every(Boolean) && checkedState.length>0;
+  btn.disabled = !ready;
+  btn.classList.toggle('ready', ready);
+  btn.textContent = curMission === missions.length-1 ? 'Complete level →' : 'Continue →';
+}
+
+document.getElementById('continueBtn').addEventListener('click', ()=>{
+  const m = missions[curMission];
+  xp += m.reward;
+  document.getElementById('xpVal').textContent = xp;
+  toast(`+${m.reward} XP · Mission complete`);
+
+  if(curMission < missions.length - 1){
+    curMission++;
+    goTo('ministeps');
+  } else {
+    goTo('levelcomplete');
+  }
+});
+
+/* ================= TOAST / TIMER ================= */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1700);
+}
+function startTimer(){
+  setInterval(()=>{
+    seconds++;
+    const mm = String(Math.floor(seconds/60)).padStart(2,'0');
+    const ss = String(seconds%60).padStart(2,'0');
+    document.getElementById('timerVal').textContent = `${mm}:${ss}`;
+  }, 40); // sped up for demo purposes
+}
+
+/* ================= MENTOR PANEL ================= */
+function toggleMentor(){
+  document.getElementById('mentorPanel').classList.toggle('open');
+}
+</script>
+</body>
+</html>

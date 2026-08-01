@@ -1,0 +1,42 @@
+/* Global styles — Tailwind layers + the reference prototype's :root palette.
+   The CSS variables here are the single source of truth for the theme; the
+   Tailwind config references them so `bg-panel`, `text-purple-light`, etc. work. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b0b10;
+  --panel: #14141c;
+  --panel-2: #191921;
+  --border: #242432;
+  --text: #e8e8ef;
+  --text-dim: #9494a6;
+  --text-mute: #5c5c6e;
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  --purple-dim: rgba(139, 92, 246, 0.14);
+  --g-blue: #4285f4;
+  --g-green: #34a853;
+  --g-yellow: #fbbc05;
+  --g-red: #ea4335;
+  --code-bg: #0d0d14;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), "Inter", sans-serif;
+  min-height: 100vh;
+  /* Soft purple aurora so the page doesn't read as a flat black slab. */
+  background-image:
+    radial-gradient(60% 50% at 15% -5%, rgba(139, 92, 246, 0.14), transparent 70%),
+    radial-gradient(50% 45% at 100% 0%, rgba(66, 133, 244, 0.1), transparent 65%);
+  background-attachment: fixed;
+}
+
+/* Thin dark scrollbars to match the prototype's aesthetic. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
